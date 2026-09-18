@@ -842,3 +842,182 @@ The lambda with the lowest average cross-validation validation loss is selected 
 
 ### Next task
 Design and implement the K-fold cross-validation experiment from scratch without using scikit-learn.
+
+# Progress Tracking
+
+## Time spent
+- Approximately 3 hours
+
+## Concepts learned
+
+### Logistic Regression
+- Reviewed the complete mathematical pipeline:
+  - sigmoid function
+  - probability interpretation
+  - Bernoulli likelihood
+  - log-likelihood
+  - negative log-likelihood / cross-entropy loss
+  - gradient descent
+  - gradient: (1/m) X^T(h-y)
+  - intercept handling
+  - convergence using parameter-change tolerance
+- Understood the difference between:
+  - likelihood vs log-likelihood
+  - loss vs log-likelihood
+  - gradient descent vs normal equation
+  - convergence vs perfect classification
+
+### Regularization
+- Added L2 regularization to Logistic Regression.
+- Understood the regularized objective:
+  J_reg = J_data + lambda * sum(theta_j^2), excluding the intercept.
+- Derived/understood the regularization gradient:
+  2 * lambda * theta_j.
+- Understood why the intercept is not regularized.
+- Investigated how different lambda values affect model parameters and loss.
+- Observed that regularization does not automatically prevent numerical instability caused by an excessively large learning rate.
+- Observed that increasing lambda generally pushes model weights toward zero.
+
+### Validation and Cross-Validation
+- Implemented a validation experiment for comparing different lambda values.
+- Understood why a single train/validation split can give a noisy estimate.
+- Learned the idea of 5-fold cross-validation.
+- Understood that with 200 examples and 5 folds:
+  - each fold contains 40 examples
+  - 160 examples are used for training
+  - 40 examples are used for validation
+  - every example is used for validation exactly once
+- Understood that every lambda is evaluated across all 5 folds.
+- Therefore, with 4 lambda values and 5 folds, 20 Logistic Regression models are trained.
+- Computed the mean validation loss across folds for each lambda.
+- Used np.argmin() to find the index of the lambda with the smallest cross-validation loss.
+- Used zip() to display each lambda together with its corresponding CV loss.
+
+## Mathematical reasoning understood
+
+- Cross-validation is not a new training algorithm. It is an experimental procedure used to estimate how different hyperparameter choices perform.
+- For each fold:
+  1. Select one fold as validation data.
+  2. Combine the remaining folds into training data.
+  3. Train a new Logistic Regression model.
+  4. Evaluate the trained model on the validation fold.
+  5. Repeat for every lambda.
+- After all folds:
+  - average the validation losses for each lambda
+  - compare the averages
+  - select the lambda corresponding to the smallest average validation loss.
+- Understood why validation loss is calculated with regularization excluded:
+  - regularization is part of the training objective
+  - validation loss should measure predictive performance on unseen data rather than penalizing the model again for its parameter magnitude.
+
+## Implementation
+
+### Logistic Regression
+- Built LogisticRegression from scratch using NumPy.
+- Implemented:
+  - sigmoid
+  - loss
+  - log-likelihood
+  - gradient
+  - gradient descent
+  - convergence criterion
+  - prediction probabilities
+  - predictions
+  - L2 regularization
+  - training history
+
+### Experiments
+Implemented:
+- learning-rate experiment
+- convergence/tolerance experiment
+- regularization experiment
+- validation experiment
+- 5-fold cross-validation experiment
+
+### Current cross-validation implementation
+- Generated two synthetic Gaussian classes.
+- Created balanced class labels.
+- Shuffled class-specific indices.
+- Created 5 folds for each class.
+- Constructed training and validation sets for every fold.
+- Added intercept columns.
+- Trained separate Logistic Regression models for each lambda.
+- Recorded validation losses.
+- Reshaped validation losses into a `(5, 4)` matrix.
+- Computed mean CV loss using:
+  `np.mean(validation_losses, axis=0)`
+- Selected the lambda with minimum CV loss using:
+  `np.argmin(cv_losses)`.
+- Printed lambda/CV-loss pairs using `zip()`.
+
+Example CV result:
+- lambda = 0 → approximately 0.219
+- lambda = 0.01 → approximately 0.227
+- lambda = 0.1 → approximately 0.317
+- lambda = 1 → approximately 0.544
+
+For this particular random dataset/split, lambda = 0 produced the smallest average validation loss.
+
+## Questions + resolutions
+
+### Logistic Regression mathematics
+- Why Logistic Regression uses probabilities instead of directly using theta^T x.
+- Why the Bernoulli likelihood can be written as:
+  h^y(1-h)^(1-y).
+- Why logarithms are applied to the likelihood.
+- Why maximizing log-likelihood is equivalent to maximizing likelihood.
+- Why Logistic Regression does not have the same normal-equation closed form as linear regression.
+- Why gradient descent subtracts the gradient.
+- Why X^T has shape `(n, m)` rather than `(1, m)`.
+- How the intercept changes X and theta dimensions.
+- Why sigmoid(0) = 0.5 and therefore the decision boundary is theta^T x = 0.
+
+### Regularization
+- Why lambda cannot be used as a Python variable name.
+- Why the intercept is excluded from regularization.
+- Why the regularization gradient contains `2 * lambda * theta`.
+- Why a larger lambda generally shrinks parameters.
+- Why a very large learning rate can still make training unstable even when regularization is present.
+- Why total loss = data loss + regularization term.
+- Why validation loss should exclude the regularization term.
+
+### Validation / Cross-Validation
+- Why validation loss can sometimes be lower than training loss.
+- Why one random validation split may not provide a reliable model-selection estimate.
+- Why cross-validation repeats the train/validation process across multiple folds.
+- Why a new model must be trained for every fold/lambda combination.
+- Why the fold construction initially caused an error when using:
+  `np.hstack((fold_0[0:i], fold_0[i+1:]))`
+- Understood that when `i = 0`, `fold_0[0:i]` is an empty list.
+- Fixed this using:
+  `np.hstack(fold_0[0:i] + fold_0[i+1:])`
+- Understood the difference between combining Python lists first and then passing the resulting list to `np.hstack`.
+- Understood that `np.argmin()` returns the index of the smallest value, not the value itself.
+- Understood how that index is then used to retrieve the corresponding lambda.
+
+## What I can rebuild from memory
+
+- Explain the mathematical derivation of Logistic Regression likelihood and loss.
+- Explain the gradient and its matrix form.
+- Explain why the sigmoid function is used.
+- Explain the role of the intercept.
+- Explain L2 regularization and its gradient.
+- Explain why regularization excludes the intercept.
+- Implement the main Logistic Regression class structure from scratch.
+- Design experiments for learning rate, convergence, regularization, validation, and cross-validation.
+- Construct class-specific folds using NumPy.
+- Build training and validation datasets for each fold.
+- Understand the `(5, 4)` validation-loss matrix:
+  - 5 rows = folds
+  - 4 columns = lambda values.
+- Compute mean CV loss across folds.
+- Select the corresponding lambda using `argmin`.
+- Pair lambda values and CV losses using `zip`.
+
+## Next task
+
+- Visualize lambda values against cross-validation loss.
+- Interpret the CV curve rather than only selecting the minimum.
+- Then discuss whether the selected lambda should be used to train a final model on all available training data.
+- Consider the role of an independent test set for evaluating the final selected model.
+- Continue documenting experimental observations rather than only recording numerical results.
